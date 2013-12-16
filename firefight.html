@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<title>Firefight</title>
+<meta charset="UTF-8">
+
+<style>
+	body {
+		font-family: sans-serif;
+		font-size: 22px;
+		font-weight: bold;
+		color: #00B399;
+	}
+</style>
+
+<script>
+
+	window.addEventListener('load', eventWindowLoaded, false);
+
+	function eventWindowLoaded() {
+		var audioElement = document.getElementById('theAudio');
+		audioElement.addEventListener('canplaythrough',audioLoaded,false);
+//		audioElement.addEventListener('progress', updateLoadingStatus,false);
+		audioElement.load();
+	}
+
+	function audioLoaded() {
+		canvasApp();
+	}
+	
+	function canvasApp() {	// ************************************************* canvasApp()
+		
+		var start = function() {
+			console.log('start');
+			this.fired = true;
+		}
+		
+		var twelve = function() {
+			console.log('twelve');
+			this.fired = true;
+		}
+		
+		var twentytwo = function() {
+			console.log('taylor swift');
+			this.fired = true;
+		}
+		
+		var end = function() {
+			console.log('end');
+			this.fired=true;
+		}
+
+		var end_of_the_end;	
+		
+		var scenes = new Array();
+		scenes.push({start:0, func:start, fired:false, text:"Start"});
+		scenes.push({start:12, func:twelve, fired:false, text:"Twelve"});
+		scenes.push({start:22, func:twentytwo, fired:false, text:"Taylor Swift"});
+		
+		scenes.push({start:150, func:end, fired:false, text:"And we out"});
+		scenes.push({start:1000000, func:undefined, fired:false, text:"balls"});
+		
+		function drawScreen(){	// ********************************************* drawScreen()
+			
+			for (i=0; i < scenes.length; i++) {
+				//console.log (scenes.length);
+				if (audioElement.currentTime >= scenes[i].start && !scenes[i].fired && audioElement.currentTime < scenes[i+1].start) {
+					scenes[i].func();
+					//console.log(scenes[i].func);
+					scene = String(scenes[i].text);
+				}
+			}
+			
+			// backgrounds
+			context.fillStyle="#ccc";
+			context.fillRect(0,0,theCanvas.width, theCanvas.height);
+			
+			infoContext.fillStyle="#ffa";
+			infoContext.fillRect(0,0,infoCanvas.width,infoCanvas.height);
+			
+			//boxes
+			context.strokeStyle = "#222";
+			context.strokeRect(0,0,theCanvas.width, theCanvas.height);
+			
+			infoContext.strokeStyle = "#000";
+			infoContext.strokeRect(5,5,infoCanvas.width-10,infoCanvas.height-10);
+			
+			// text
+			infoContext.fillStyle="#000";
+			infoContext.fillText("Current Time: " + audioElement.currentTime, 20, 40);
+
+			infoContext.fillText("Can play OGG: " + audioElement.canPlayType("audio/ogg") + "... Can play WebM: " + audioElement.canPlayType("audio/webm") + "... Can play WAV: " + audioElement.canPlayType("audio/wav"), 20, 80);
+
+			infoContext.fillText("Playing: " + audioElement.currentSrc, 20, 100);
+			infoContext.fillText(scene, 20, 140);
+
+
+
+			
+		} // ************ End drawScreen()
+		
+		var theCanvas = document.getElementById('canvasOne');
+		var context = theCanvas.getContext('2d');
+		var audioElement = document.getElementById('theAudio');
+		
+		var infoCanvas = document.getElementById('canvasTwo');
+		var infoContext = infoCanvas.getContext('2d');
+		
+		var scene;
+		
+
+		
+		audioElement.play();
+		
+		function gameLoop() {
+			window.setTimeout(gameLoop,20);
+			drawScreen();
+		}
+		
+		gameLoop();
+		
+	} // ************************************************************************************** End canvasApp()
+	
+</script>
+
+</head>
+<body>
+	
+	<div id="top">
+		FIREFIGHT
+		<a href="http://jennyowenyoungs.bandcamp.com/album/exhibit">Jenny Owen Youngs - Exhibit</a>
+	</div>
+	
+	<div style="position:absolute; top:50px; left:50px;">
+		<canvas id="canvasOne" width="1280" height="720">
+			Your browser is old as fuck. <a href="https://support.google.com/chrome/answer/95346?hl=en" target="_blank">Download Chrome please.</a>
+		</canvas>
+	</div>
+	
+	<div style="position:absolute; top:820px; left:50px;">
+		<canvas id="canvasTwo" width="1280" height="200">
+		</canvas>
+	</div>
+
+	<div id="div_audio">
+		<audio id="theAudio" style="display:none">
+			<source src="outfile.webm" type="audio/webm" />
+			<source src="outfile.ogg" type="audio/ogg" />
+			<source src="outfile.wav" type="audio/wav" />
+		</audio>
+	</div>
+
+</body>
+</html>
