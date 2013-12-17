@@ -28,58 +28,76 @@
 		canvasApp();
 	}
 	
+
+	
+
+	
 	function canvasApp() {	// ************************************************* canvasApp()
 		
-		var start = function() {
-			console.log('start');
-			this.fired = true;
-		}
+		var theCanvas = document.getElementById('canvasOne');
+		var context = theCanvas.getContext('2d');
+		var audioElement = document.getElementById('theAudio');
 		
-		var twelve = function() {
-			console.log('twelve');
-			this.fired = true;
-		}
+		var infoCanvas = document.getElementById('canvasTwo');
+		var infoContext = infoCanvas.getContext('2d');
 		
-		var twentytwo = function() {
-			console.log('taylor swift');
-			this.fired = true;
-		}
+		var message;
+		var sky_y = 0;
+		var earth_y = 180;
 		
-		var end = function() {
-			console.log('end');
-			this.fired=true;
-		}
+													// * * * * 		Asteroids setup
+		var asteroids = new Array();
+		for (i=0; i < (Math.floor(Math.random()*10))+6; i++) {	// how many asteroids?
+			tempx = Math.floor(Math.random()*600)+600;
+			tempy = Math.floor(Math.random()*200)+100;	// this will need to change to like minus 400 or something to start off screen
+			speed = Math.floor(Math.random()*4);
+			trajectory = Math.floor(Math.random()*2);
+			asteroids.push({x:tempx, y:tempy, speed:speed, trajectory:trajectory});
+		}											// * * *  End Asteroids setup
+	//	console.log(asteroids);
 
-		var end_of_the_end;	
+		var liveScenes = new Array();	// as each scene fires it will be added to the liveScenes array so we know to update it
+		var scenes = new Array();	// remember to push scenes in reverse order!
+		var start,twelve,taylor,end;	// initialize vars for calling each scene
+		scenes.push({start:120, text:"End of the line.", timeFor:end});
+		scenes.push({start:22, text:"Taylor Swift time.", timeFor:taylor});
+		scenes.push({start:12, text:"Twelve seconds in.", timeFor:twelve});
+		scenes.push({start:0, text:"Beginning of the line.", timeFor:start});
 		
-		var scenes = new Array();
-		scenes.push({start:0, func:start, fired:false, text:"Start"});
-		scenes.push({start:12, func:twelve, fired:false, text:"Twelve"});
-		scenes.push({start:22, func:twentytwo, fired:false, text:"Taylor Swift"});
-		
-		scenes.push({start:150, func:end, fired:false, text:"And we out"});
-		scenes.push({start:1000000, func:undefined, fired:false, text:"balls"});
-		
-		function drawScreen(){	// ********************************************* drawScreen()
-			
-			for (i=0; i < scenes.length; i++) {
-				//console.log (scenes.length);
-				if (audioElement.currentTime >= scenes[i].start && !scenes[i].fired && audioElement.currentTime < scenes[i+1].start) {
-					scenes[i].func();
-					//console.log(scenes[i].func);
-					scene = String(scenes[i].text);
+		function updateScene(scene){
+			switch(scene){
+			case 0:
+				sky_y-=2;														// move sky gradient up
+				break;
+			case 1:
+				if (earth_y > 0) {
+					earth_y--;													// move earth planet up
 				}
+				break;
+			case 2:
+				for (i=0; i<asteroids.length;i++) {								// do some shit with asteroids
+					asteroids[i].x -= 1 + asteroids[i].speed;
+					asteroids[i].y += 2 + asteroids[i].trajectory;
+				}
+			default:
+				console.log('default');
 			}
 			
+		}
+	
+	
+		function drawScreen(){	// ********************************************* drawScreen()
+	
+			// stage setup
 			// backgrounds
-			context.fillStyle="#ccc";
+			context.fillStyle="#000";
 			context.fillRect(0,0,theCanvas.width, theCanvas.height);
 			
 			infoContext.fillStyle="#ffa";
 			infoContext.fillRect(0,0,infoCanvas.width,infoCanvas.height);
 			
 			//boxes
-			context.strokeStyle = "#222";
+			context.strokeStyle = "#ccc";
 			context.strokeRect(0,0,theCanvas.width, theCanvas.height);
 			
 			infoContext.strokeStyle = "#000";
@@ -92,25 +110,69 @@
 			infoContext.fillText("Can play OGG: " + audioElement.canPlayType("audio/ogg") + "... Can play WebM: " + audioElement.canPlayType("audio/webm") + "... Can play WAV: " + audioElement.canPlayType("audio/wav"), 20, 80);
 
 			infoContext.fillText("Playing: " + audioElement.currentSrc, 20, 100);
-			infoContext.fillText(scene, 20, 140);
+			infoContext.fillText(message, 20, 140);
+	
+			// end setup
+	
+			// gradient for sky
+			var gr = context.createLinearGradient(0,sky_y,0,theCanvas.height*5);
+			gr.addColorStop(0,'rgb(0,0,0)');
+			gr.addColorStop(0.25, 'rgb(0,0,0)');
+			gr.addColorStop(0.4, 'rgb(100,10,10)');
+			gr.addColorStop(0.6, 'rgb(100,30,150)');
+			gr.addColorStop(0.8, 'rgb(50,20,255)');
+			gr.addColorStop(1,'rgb(50,10,255)');
+			context.fillStyle = gr;
+			context.fillRect(0,0,theCanvas.width,theCanvas.height);
 
+			// earth shape
+			context.fillStyle = "#586";
+			context.beginPath();
+			context.moveTo(0,theCanvas.height + earth_y);
+			context.lineTo(theCanvas.width,theCanvas.height + earth_y);
+			context.lineTo(theCanvas.width,theCanvas.height-100 + earth_y);
+			context.quadraticCurveTo(theCanvas.width/2,theCanvas.height-180 + earth_y,0,theCanvas.height-100 + earth_y);
+			context.lineTo(0,theCanvas.height - earth_y);
+			context.closePath();
+			context.fill();
+			
+			// asteroids
+			function generateAsteroids() {
+				for (i=0; i < asteroids.length; i++) {
+					context.beginPath();
+					context.shadowOffsetX = 5;
+					context.shadowOffsetY = -5;
+					myFillColor = Math.floor(Math.random()*100)+150;
+				//	console.log(myShadowColor);
+					
+					context.shadowColor = "rgb(100,100,150)";
+					context.shadowBlur = 10;
+					context.fillStyle = "rgb("+myFillColor+","+myFillColor+","+myFillColor+")";
+					context.arc(asteroids[i].x,asteroids[i].y,5,0,360*Math.PI/180, false);
+					context.fill();
+					context.closePath();
+				}
+			}
+			generateAsteroids();
+
+	
 
 
 			
+			var t = Math.floor(audioElement.currentTime);
+			var scene = scenes.pop();
+			if (t >= scene.start) {				// This is sort of the main control loop for the whole thing. ?
+				message = scene.text;
+				liveScenes.push(scene);
+			} else {
+				scenes.push(scene); // if its not time for that scene yet we need to put it back on the stack...
+			}
+			
+			for (i=0; i < liveScenes.length; i++) {
+				updateScene(i);
+			}
+			
 		} // ************ End drawScreen()
-		
-		var theCanvas = document.getElementById('canvasOne');
-		var context = theCanvas.getContext('2d');
-		var audioElement = document.getElementById('theAudio');
-		
-		var infoCanvas = document.getElementById('canvasTwo');
-		var infoContext = infoCanvas.getContext('2d');
-		
-		var scene;
-		
-
-		
-		audioElement.play();
 		
 		function gameLoop() {
 			window.setTimeout(gameLoop,20);
@@ -118,6 +180,8 @@
 		}
 		
 		gameLoop();
+		
+		audioElement.play();
 		
 	} // ************************************************************************************** End canvasApp()
 	
